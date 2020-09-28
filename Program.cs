@@ -19,31 +19,18 @@ namespace PDFCombiner
 
         private static void CombineMultiplePDFs(string[] args, string outFile)
         {
-            iTextSharp.text.Document document = new iTextSharp.text.Document();
-            iTextSharp.text.pdf.PdfCopy copy = new iTextSharp.text.pdf.PdfCopy(document, new System.IO.FileStream(outFile, System.IO.FileMode.Create));
-            if (copy != null)
-            {
-                document.Open();
-                foreach (string str in args)
+            PdfSharp.Pdf.PdfDocument pdfdocument = new PdfSharp.Pdf.PdfDocument();
+            foreach (string str in args)
+            { 
+                PdfSharp.Pdf.PdfDocument inputDocument = PdfSharp.Pdf.IO.PdfReader.Open(str, PdfSharp.Pdf.IO.PdfDocumentOpenMode.Import);
+                int count = inputDocument.PageCount;
+                for (int idx = 0; idx < count; idx++)
                 {
-                    try
-                    {
-                        iTextSharp.text.pdf.PdfReader reader = new iTextSharp.text.pdf.PdfReader(str);
-                        reader.ConsolidateNamedDestinations();
-                        for (int i = 1; i <= reader.NumberOfPages; i++)
-                        {
-                            iTextSharp.text.pdf.PdfImportedPage importedPage = copy.GetImportedPage(reader, i);
-                            copy.AddPage(importedPage);
-                        }
-                        reader.Close();
-                    }
-                    catch
-                    {
-                    }
+                    PdfSharp.Pdf.PdfPage page = inputDocument.Pages[idx];
+                    pdfdocument.AddPage(page);
                 }
-                copy.Close();
-                document.Close();
             }
+            pdfdocument.Save(outFile);
         }
     }
 }
